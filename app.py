@@ -11,7 +11,10 @@ def connect_db():
   rv.row_factory = sqlite3.Row
   return rv
 
-def get_db():
+def get_db(own_cxt=False):
+  if own_cxt:
+    return connect_db()
+
   if not hasattr(g, 'sqlite_db'):
     g.sqlite_db = connect_db()
   return g.sqlite_db
@@ -32,18 +35,25 @@ def initdb_command():
   init_db()
   print 'Initialized the database.'
 
-def add_route(street, weekday, from_time, to_time, side, weeks, path):
-  db = get_db()
-  db.execute('insert into routes (street, weekday, from_time, to_time, side, weeks) values (?, ?)',[street,weekday,from_time,to_time,side,weeks,path])
+def add_route(street, weekday, from_time, to_time, side, weeks, path, own_cxt=False):
+  db = get_db(own_cxt)
+  cursor = db.cursor()
+  cursor.execute('insert into routes (street, weekday, from_time, to_time, side, weeks) values (?, ?, ?, ?, ?, ?)',[street,weekday,from_time,to_time,side,weeks])
   db.commit()
-  route_id = db.lastrowid
-  add_path(route_id, path)
+  route_id = cursor.lastrowid
+  add_path(route_id, path,own_cxt)
 
-def add_path(route_id, path):
-  db = get_db()
+def add_path(route_id, path, own_cxt=False):
+  db = get_db(own_cxt)
   for p in path:
-    db.execute('insert into path (lat, lng, route) values (?, ?)',[p.lat, p.lng, route_id])
+    db.execute('insert into path (lat, lng, route) values (?, ?, ?)',[p["lat"], p["lng"], route_id])
     db.commit()
+
+def clear_db(own_cxt=False):
+  db = get_db(own_cxt)
+  db.execute('delete from path where id >= 0')
+  db.execute('delete from routes where id >= 0')
+  db.commit()
 
 @app.route('/')
 def street_cleaning_map():
