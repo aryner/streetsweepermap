@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head>
+    <title>SF Street Cleaning Map</title>
+  </head>
+  <body>
+    {% if routes %}
+    <ul>
+      {% for r in routes %}
+        <li>{{ r.street }}</li>
+      {% endfor %}
+    </ul>
+    {% else %}
+      <h1>Nothing to see here</h1>
+    {% endif %}
+  </body>
+</html>

@@ -1,5 +1,4 @@
-drop table if exists entries;
-create table routes (
+create table if not exists routes (
   id integer primary key autoincrement,
   street text not null,
   weekday text,
@@ -9,8 +8,8 @@ create table routes (
   weeks integer
 );
 
-create table path (
-  id integer primary key autoincremnt,
+create table if not exists path (
+  id integer primary key autoincrement,
   lat real,
   lng real,
   route integer,
