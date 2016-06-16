@@ -59,15 +59,13 @@ def clear_db(own_cxt=False):
 def street_cleaning_map():
   db = get_db()
   cursor = db.execute("select * from routes")
-  routes = cursor.fetchall()
-  return render_template('street_cleaning_map.html',routes=routes)
+  return render_template('street_cleaning_map.html')
 
 @app.route('/routes/<lat1>&<lng1>&<lat2>&<lng2>')
 def routes(lat1,lng1,lat2,lng2):
   db = get_db()
   cursor = db.execute("select * from routes where id in (select route from path where lat > ? and lng > ? and lat < ? and lng < ?) order by id",[lat1,lng1,lat2,lng2])
   routes = cursor.fetchall()
-  #cursor = db.execute("select * from path where lat > ? and lng > ? and lat < ? and lng < ? order by route",[lat1,lng1,lat2,lng2])
   cursor = db.execute("select * from path where route in (select id from routes where id in (select route from path where lat > ? and lng > ? and lat < ? and lng < ?) order by id)",[lat1,lng1,lat2,lng2])
   paths = cursor.fetchall()
   mergedPaths = merge_paths(routes,paths)

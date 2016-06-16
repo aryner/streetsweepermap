@@ -2,16 +2,11 @@
 <html>
   <head>
     <title>SF Street Cleaning Map</title>
+    <link rel='stylesheet' href="static/css/map.css">
   </head>
   <body>
-    {% if routes %}
-    <ul>
-      {% for r in routes %}
-        <li>{{ r.street }}</li>
-      {% endfor %}
-    </ul>
-    {% else %}
-      <h1>Nothing to see here</h1>
-    {% endif %}
+    <div id="map"></div>
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?"></script>
+    <script type="text/javascript" src="static/scripts/maps.js"></script>
   </body>
 </html>
