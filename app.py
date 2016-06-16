@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from flask import Flask, g, render_template
+from flask import Flask, g, render_template, jsonify
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -61,4 +61,34 @@ def street_cleaning_map():
   cursor = db.execute("select * from routes")
   routes = cursor.fetchall()
   return render_template('street_cleaning_map.html',routes=routes)
+
+@app.route('/routes/<lat1>&<lng1>&<lat2>&<lng2>')
+def routes(lat1,lng1,lat2,lng2):
+  db = get_db()
+  cursor = db.execute("select * from routes where id in (select route from path where lat > ? and lng > ? and lat < ? and lng < ?) order by id",[lat1,lng1,lat2,lng2])
+  routes = cursor.fetchall()
+  #cursor = db.execute("select * from path where lat > ? and lng > ? and lat < ? and lng < ? order by route",[lat1,lng1,lat2,lng2])
+  cursor = db.execute("select * from path where route in (select id from routes where id in (select route from path where lat > ? and lng > ? and lat < ? and lng < ?) order by id)",[lat1,lng1,lat2,lng2])
+  paths = cursor.fetchall()
+  mergedPaths = merge_paths(routes,paths)
+  return jsonify(mergedPaths)
+
+def merge_paths(croutes,cpaths):
+  routes = []
+  paths = []
+  for p in cpaths:
+    paths.append({'lat':p["lat"], 'lng':p["lng"],"route":p["route"]})
+  for r in croutes:
+    path = []
+    to_remove = []
+    for p in paths:
+      if int(p["route"]) != int(r["id"]) and path:
+        break
+      path.append({"lat":p["lat"],"lng":p["lng"]})
+      to_remove.append(p)
+    for p in to_remove:
+      paths.remove(p)
+    routes.append({"street":r["street"],"weekday":r["weekday"],"from":r["from_time"],"to":r["to_time"],"side":r["side"],"weeks":r["weeks"],"path":path})
+  return routes
+
 

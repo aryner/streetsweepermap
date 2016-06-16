@@ -7,3 +7,4 @@ USERNAME = 'admin'
 PASSWORD = 'default'
 
 SECRET_KEY = 'dev-key'
+
