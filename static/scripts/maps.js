@@ -1,10 +1,10 @@
 // TODO
-// 2 - draw lines on the streets for the above query
 // 3 - split lines to either side of the street
 // 4 - create color gradient for distance from street cleaning 
 // 5 - apply above to the lines
 // 6 - prevent repeat queries and redrawing
 // 7 - style 
+// 8 - refactor everything
 
 var map;
 var styledMap = new google.maps.StyledMapType(styles,{name: "Styled Map"});
@@ -29,7 +29,7 @@ function initMap() {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() {
       if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-        console.log(xmlHttp.responseText);
+        drawRoutes(JSON.parse(xmlHttp.responseText));
       }
     }
     xmlHttp.open("GET", "http://localhost:5000/routes/"+br.lat+"&"+tl.lng+"&"+tl.lat+"&"+br.lng, true);
@@ -37,6 +37,12 @@ function initMap() {
   });
   
   return map;
+}
+
+function drawRoutes(routesJson) {
+  for (var i=0; i<routesJson.length; i++) {
+    drawLine(map, routesJson[i].path, '#ff0000');
+  }
 }
 
 function drawLine(map, coords, color) {
