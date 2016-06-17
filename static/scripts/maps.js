@@ -1,7 +1,7 @@
 // TODO
-// 3 - split lines to either side of the street
 // 4 - create color gradient for distance from street cleaning 
 // 5 - apply above to the lines
+//  5.1 - ensure that the lines are split the correct way
 // 6 - prevent repeat queries and redrawing
 // 7 - style 
 // 8 - refactor everything
@@ -20,7 +20,6 @@ function initMap() {
   map.addListener('bounds_changed', function() {
     var zoom = map.getZoom();
     if (zoom < 16) return;
-    console.log(zoom);
 
     var bounds = map.getBounds();
     var tl = {lat: bounds.H.j, lng: bounds.j.j};
@@ -41,8 +40,18 @@ function initMap() {
 
 function drawRoutes(routesJson) {
   for (var i=0; i<routesJson.length; i++) {
-    drawLine(map, routesJson[i].path, '#ff0000');
+    path = shiftSide(routesJson[i].path,routesJson[i].side)
+    drawLine(map, path, '#ff0000');
   }
+}
+
+function shiftSide(coords, side) {
+  var shift = side == 1 ? 0.00005 : -0.00005;
+  for (var i=0; i<coords.length; i++) {
+    coords[i].lat += shift;
+    coords[i].lng += shift;
+  }
+  return coords;
 }
 
 function drawLine(map, coords, color) {
@@ -57,9 +66,5 @@ function drawLine(map, coords, color) {
 }
 
 map = initMap()
-
-// random line
-var coords = [{lat: 37.7598248, lng: -122.4573765},{lat: 37.7405511, lng: -122.4156628}]
-drawLine(map, coords, '#ff0000')
 
 
