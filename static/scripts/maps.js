@@ -1,5 +1,4 @@
 // TODO
-// 4 - create color gradient for distance from street cleaning 
 // 5 - apply above to the lines
 //  5.1 - ensure that the lines are split the correct way
 // 6 - prevent repeat queries and redrawing
@@ -8,6 +7,7 @@
 
 var map;
 var styledMap = new google.maps.StyledMapType(styles,{name: "Styled Map"});
+var colors = ['#ff0000','#ff8800','#ffff00','#88ff00','#00ff00'];
 
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {

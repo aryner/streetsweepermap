@@ -1,6 +1,68 @@
-html, body, #map {
+html, body { 
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
+}
+
+#map {
+  height: 90%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#key {
+  height: 10%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: #444444;
+  color: #ffffff;
+}
+
+#key .header {
+  font-size: 300%;
+  float: left;
+}
+
+#key .color1 {
+  float: right;
+  background: #ff0000;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 10%;
+}
+#key .color2 {
+  float: right;
+  background: #ff8800;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 10%;
+}
+#key .color3 {
+  float: right;
+  background: #ffff00;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 10%;
+}
+#key .color4 {
+  float: right;
+  background: #88ff00;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 10%;
+}
+#key .color5 {
+  float: right;
+  background: #00ff00;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 10%;
 }
