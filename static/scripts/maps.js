@@ -1,11 +1,13 @@
 // TODO
-// 5 - apply above to the lines
-//  5.1 - ensure that the lines are split the correct way
 // 6 - prevent repeat queries and redrawing
 // 7 - style 
 // 8 - refactor everything
+// 9 - account more than day differences
+// 10 - account for routes that have more than one day
+// 11 - account for nw vs ew roads because the shift currently only works for one or the other
 
 var map;
+var queriedId = [];
 var styledMap = new google.maps.StyledMapType(styles,{name: "Styled Map"});
 var colors = ['#ff0000','#ff8800','#ffff00','#88ff00','#00ff00'];
 
@@ -18,12 +20,15 @@ function initMap() {
   map.mapTypes.set('map_style',styledMap);
   map.setMapTypeId('map_style');
   map.addListener('bounds_changed', function() {
+
     var zoom = map.getZoom();
     if (zoom < 16) return;
 
     var bounds = map.getBounds();
-    var tl = {lat: bounds.H.j, lng: bounds.j.j};
-    var br = {lat: bounds.H.H, lng: bounds.j.H};
+//    var tl = {lat: bounds.H.j, lng: bounds.j.j};
+//    var br = {lat: bounds.H.H, lng: bounds.j.H};
+    var tl = {lat: bounds.f.b, lng: bounds.b.b};
+    var br = {lat: bounds.f.f, lng: bounds.b.f};
 
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() {
@@ -31,6 +36,7 @@ function initMap() {
         drawRoutes(JSON.parse(xmlHttp.responseText));
       }
     }
+    
     xmlHttp.open("GET", "http://localhost:5000/routes/"+br.lat+"&"+tl.lng+"&"+tl.lat+"&"+br.lng, true);
     xmlHttp.send(null);
   });
@@ -40,13 +46,112 @@ function initMap() {
 
 function drawRoutes(routesJson) {
   for (var i=0; i<routesJson.length; i++) {
-    path = shiftSide(routesJson[i].path,routesJson[i].side)
-    drawLine(map, path, '#ff0000');
+    //if route id not in queriedId
+    if (!queriedId.includes(routesJson[i].id)) {
+      path = shiftSide(routesJson[i].path,routesJson[i].side)
+      color = getColor(routesJson[i].from, routesJson[i].to, routesJson[i].weekday, routesJson[i].weeks,routesJson[i].street)
+      drawLine(map, path, color);
+      queriedId.push(routesJson[i].id);
+    }
+  }
+}
+
+function getColor(from, to, weekday, weeks, name) {
+  weekday = convertDay(weekday);
+  var date = new Date();
+  var week = getWeek(date.getDate());
+  //cases:
+  // is this week
+  if((week & weeks) > 0) {
+    // today
+    if(date.getDay() === weekday) {
+      // to is still to come
+      if(date.getHours() < to) {
+        return colors[0];
+      // to has passed or is ===
+      } else {
+        week = week << 1;
+        // will happen next week
+        if ((week & weeks) > 0) {
+          return colors[3];
+        // will not happen next week
+        } else {
+          return colors[4];
+        }
+      }
+    // already happened this week
+    } else if (date.getDay() > weekday) {
+      week = week << 1;
+      var daysAway = (6-date.getDay()) + weekday
+      // will happen next week
+      if ((week & weeks) > 0) {
+        var daysAway = (6-date.getDay()) + weekday
+        // more than 3 days away
+        if(daysAway >= 3) {
+          return colors[3];
+        }
+        return colors[daysAway];
+      // will not happen next week
+      } else {
+        return colors[4];
+      }
+    // later this week
+    } else {
+      var daysAway = (6-date.getDay()) + weekday
+      if(daysAway >= 3) {
+        return colors[3];
+      }
+      return colors[daysAway];
+    }
+  // not this week
+  } else {
+    week = week << 1;
+    // next week
+    if ((week & weeks) > 0) {
+     var daysAway = (6-date.getDay()) + weekday
+     if(daysAway >= 3){
+       return colors[3];
+     }
+     return colors[daysAway];
+    // not next week
+    } else {
+      return colors[0];
+    }
+  }
+  // blue means who knows
+  return '#0000ff';
+}
+
+function getWeek(date) {
+  week = 1;
+  while(date > 7) {
+    date -= 7;
+    week = week << 1;
+  }
+  return week;
+}
+
+function convertDay(day) {
+  switch(day) {
+    case 'Sun':
+      return 0;
+    case 'Mon':
+      return 1;
+    case 'Tues':
+      return 2;
+    case 'Wed': 
+      return 3;
+    case 'Thurs':
+      return 4;
+    case 'Fri':
+      return 5;
+    default:
+      return 6;
   }
 }
 
 function shiftSide(coords, side) {
-  var shift = side == 1 ? 0.00005 : -0.00005;
+  var shift = side == 1 ? -0.00005 : 0.00005;
   for (var i=0; i<coords.length; i++) {
     coords[i].lat += shift;
     coords[i].lng += shift;

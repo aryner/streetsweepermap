@@ -86,7 +86,7 @@ def merge_paths(croutes,cpaths):
       to_remove.append(p)
     for p in to_remove:
       paths.remove(p)
-    routes.append({"street":r["street"],"weekday":r["weekday"],"from":r["from_time"],"to":r["to_time"],"side":r["side"],"weeks":r["weeks"],"path":path})
+    routes.append({"id":r["id"],"street":r["street"],"weekday":r["weekday"],"from":r["from_time"],"to":r["to_time"],"side":r["side"],"weeks":r["weeks"],"path":path})
   return routes
 
 
