@@ -30,6 +30,11 @@ function initMap() {
     var tl = {lat: bounds.f.b, lng: bounds.b.b};
     var br = {lat: bounds.f.f, lng: bounds.b.f};
 
+    //TODO
+    //have a drawn bounds variable, only make querries outside
+    //this bounds and add them to the drawn bounds variable, 
+    //otherwise do not query
+
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() {
       if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
