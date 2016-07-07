@@ -1,5 +1,6 @@
 // TODO
-// 6 - prevent repeat queries and redrawing
+// 6 - debug querries/drawing after the initial query/drawing
+     // - make subsequent querries smaller
 // 7 - style 
 // 8 - refactor everything
 // 9 - account more than day differences
@@ -8,45 +9,76 @@
 
 var map;
 var queriedId = [];
+var querriedBounds = null;
 var styledMap = new google.maps.StyledMapType(styles,{name: "Styled Map"});
 var colors = ['#ff0000','#ff8800','#ffff00','#88ff00','#00ff00'];
 
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
     center: {lat: 37.7598564, lng: -122.4349647},
-    zoom: 15
+    zoom: 13
   });
 
   map.mapTypes.set('map_style',styledMap);
   map.setMapTypeId('map_style');
   map.addListener('bounds_changed', function() {
 
-    var zoom = map.getZoom();
-    if (zoom < 16) return;
+  var zoom = map.getZoom();
+  if (zoom < 15) return;
 
-    var bounds = map.getBounds();
-//    var tl = {lat: bounds.H.j, lng: bounds.j.j};
-//    var br = {lat: bounds.H.H, lng: bounds.j.H};
-    var tl = {lat: bounds.f.b, lng: bounds.b.b};
-    var br = {lat: bounds.f.f, lng: bounds.b.f};
+  var bounds = map.getBounds();
+  //var tl = {lat: bounds.H.j, lng: bounds.j.j};
+  //var br = {lat: bounds.H.H, lng: bounds.j.H};
+  var tl = {lat: bounds.f.b, lng: bounds.b.b};
+  var br = {lat: bounds.f.f, lng: bounds.b.f};
 
-    //TODO
-    //have a drawn bounds variable, only make querries outside
-    //this bounds and add them to the drawn bounds variable, 
+  //TODO
+  //have a drawn bounds variable 
+  if(querriedBounds) {
+    var toQuery = getOutOfBounds(tl,br,querriedBounds);
+    //only make querries outside this bounds 
+    //and add them to the drawn bounds variable, 
+    if (toQuery) {
+      tl = toQuery.tl;
+      br = toQuery.br
     //otherwise do not query
-
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() {
-      if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-        drawRoutes(JSON.parse(xmlHttp.responseText));
-      }
+    } else {
+      return;
     }
+  } else {
+    querriedBounds = {tl:tl, br:br};
+  }
+
+  var xmlHttp = new XMLHttpRequest();
+  xmlHttp.onreadystatechange = function() {
+    if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+      console.log('querying');
+      drawRoutes(JSON.parse(xmlHttp.responseText));
+    }
+  }
     
     xmlHttp.open("GET", "http://localhost:5000/routes/"+br.lat+"&"+tl.lng+"&"+tl.lat+"&"+br.lng, true);
     xmlHttp.send(null);
+    querriedBounds = {tl:tl, br:br};
   });
   
   return map;
+}
+
+function getOutOfBounds(tl, br, bounds) {
+  // up++, right++
+  var t = tl.lat > bounds.tl.lat ? true : false;
+  var r = br.lng > bounds.br.lng ? true : false;
+  var b = br.lat < bounds.br.lat ? true : false;
+  var l = tl.lng < bounds.tl.lng ? true : false;
+
+  if(!(t || r || b || l)) return null;
+
+  // do entire range or just two smallest squares?
+  var newTl = {lat:Math.max(tl.lat,bounds.tl.lat),lng:Math.min(tl.lng,bounds.tl.lng)};
+  var newBr = {lat:Math.min(br.lat,bounds.br.lat),lng:Math.max(tl.lng,bounds.tl.lng)};
+
+  return {tl:newTl, br:newBr};
 }
 
 function drawRoutes(routesJson) {
